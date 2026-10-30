@@ -1,0 +1,46 @@
+file,row,field,rule,value,message
+agro_iberia.xlsx,61,quantity_kg,invalid_format,n/a,cannot read 'n/a' as a number
+agro_iberia.xlsx,71,quantity_kg,invalid_format,n/a,cannot read 'n/a' as a number
+bio_nord.xlsx,64,delivery_date,invalid_format,TBD,cannot read 'TBD' as a date
+bio_nord.xlsx,128,delivery_date,invalid_format,TBD,cannot read 'TBD' as a date
+cooperative_normandie.xlsx,82,quantity_kg,invalid_format,abc,cannot read 'abc' as a number
+cooperative_normandie.xlsx,106,unit_price_eur,invalid_format,?,cannot read '?' as a number
+fazenda_sul.xlsx,23,delivery_date,invalid_format,31/02/2026,cannot read '31/02/2026' as a date
+fazenda_sul.xlsx,28,quantity_kg,invalid_format,--,cannot read '--' as a number
+green_farms_uk.xlsx,103,quantity_kg,invalid_format,abc,cannot read 'abc' as a number
+green_farms_uk.xlsx,127,delivery_date,invalid_format,TBD,cannot read 'TBD' as a date
+agro_iberia.xlsx,28,delivery_date,missing_value,,Required field 'delivery_date' is empty
+agro_iberia.xlsx,37,unit_price_eur,non_positive_value,-0.227,'unit_price_eur' must be greater than zero
+agro_iberia.xlsx,79,product_code,unknown_product,ZZZ99,Product code is not in the reference list
+agro_iberia.xlsx,85,quantity_kg,missing_value,,Required field 'quantity_kg' is empty
+agro_iberia.xlsx,109,unit_price_eur,non_positive_value,0.0,'unit_price_eur' must be greater than zero
+agro_iberia.xlsx,116,delivery_date,date_out_of_period,2026-10-25,Date outside 2026-09-01 to 2026-09-30
+agro_iberia.xlsx,133,all,duplicate_row,,Duplicate of agro_iberia.xlsx row 25
+bio_nord.xlsx,15,product_code,unknown_product,ZZZ99,Product code is not in the reference list
+bio_nord.xlsx,21,unit_price_eur,non_positive_value,-0.782,'unit_price_eur' must be greater than zero
+bio_nord.xlsx,42,quantity_kg,missing_value,,Required field 'quantity_kg' is empty
+bio_nord.xlsx,61,delivery_date,date_out_of_period,2026-08-30,Date outside 2026-09-01 to 2026-09-30
+bio_nord.xlsx,96,unit_price_eur,non_positive_value,-0.216,'unit_price_eur' must be greater than zero
+bio_nord.xlsx,129,unit_price_eur,missing_value,,Required field 'unit_price_eur' is empty
+bio_nord.xlsx,135,all,duplicate_row,,Duplicate of bio_nord.xlsx row 72
+cooperative_normandie.xlsx,24,product_code,unknown_product,ZZZ99,Product code is not in the reference list
+cooperative_normandie.xlsx,31,delivery_date,missing_value,,Required field 'delivery_date' is empty
+cooperative_normandie.xlsx,35,quantity_kg,non_positive_value,-9847.0,'quantity_kg' must be greater than zero
+cooperative_normandie.xlsx,55,unit_price_eur,non_positive_value,0.0,'unit_price_eur' must be greater than zero
+cooperative_normandie.xlsx,67,delivery_date,date_out_of_period,2026-10-11,Date outside 2026-09-01 to 2026-09-30
+cooperative_normandie.xlsx,101,product_code,missing_value,,Required field 'product_code' is empty
+cooperative_normandie.xlsx,135,all,duplicate_row,,Duplicate of cooperative_normandie.xlsx row 15
+fazenda_sul.xlsx,10,delivery_date,date_out_of_period,2026-10-05,Date outside 2026-09-01 to 2026-09-30
+fazenda_sul.xlsx,60,product_code,unknown_product,ZZZ99,Product code is not in the reference list
+fazenda_sul.xlsx,84,quantity_kg,missing_value,,Required field 'quantity_kg' is empty
+fazenda_sul.xlsx,88,quantity_kg,non_positive_value,0.0,'quantity_kg' must be greater than zero
+fazenda_sul.xlsx,98,unit_price_eur,non_positive_value,-0.439,'unit_price_eur' must be greater than zero
+fazenda_sul.xlsx,101,supplier,missing_value,,Required field 'supplier' is empty
+fazenda_sul.xlsx,133,all,duplicate_row,,Duplicate of fazenda_sul.xlsx row 40
+green_farms_uk.xlsx,9,product_code,unknown_product,ZZZ99,Product code is not in the reference list
+green_farms_uk.xlsx,60,quantity_kg,non_positive_value,-14495.3,'quantity_kg' must be greater than zero
+green_farms_uk.xlsx,71,delivery_date,date_out_of_period,2026-08-20,Date outside 2026-09-01 to 2026-09-30
+green_farms_uk.xlsx,85,quantity_kg,non_positive_value,-17746.8,'quantity_kg' must be greater than zero
+green_farms_uk.xlsx,89,unit_price_eur,missing_value,,Required field 'unit_price_eur' is empty
+green_farms_uk.xlsx,117,product_code,missing_value,,Required field 'product_code' is empty
+green_farms_uk.xlsx,132,all,duplicate_row,,Duplicate of green_farms_uk.xlsx row 93
