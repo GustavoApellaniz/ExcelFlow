@@ -1,161 +1,197 @@
-# harmonize-xl
+# ExcelFlow
 
-[![tests](https://github.com/GustavoApellaniz/harmonize-xl/actions/workflows/tests.yml/badge.svg)](https://github.com/GustavoApellaniz/harmonize-xl/actions/workflows/tests.yml)
+[![Tests](https://github.com/GustavoApellaniz/ExcelFlow/actions/workflows/tests.yml/badge.svg)](https://github.com/GustavoApellaniz/ExcelFlow/actions/workflows/tests.yml)
 
-A Python command-line tool that **consolidates Excel files from different sources into one
-validated workbook**: it finds each file's header row, maps columns written in different
-languages (even misspelled), converts dates and numbers, flags every inconsistent row with its
-exact location, and writes a report with live Excel formulas.
+**ExcelFlow** is a Python-based tool for automating the consolidation, cleaning, and validation of Excel spreadsheets from multiple sources.
 
-> Built for a common situation: every supplier, branch or department sends a monthly `.xlsx`
-> with its own layout, and someone spends hours copying and fixing them by hand.
+It addresses a common business problem: receiving spreadsheets with inconsistent formats, column names, date conventions, and data quality issues, then having to manually standardize and consolidate them.
 
-## What it does
+ExcelFlow automates this process through a structured data-processing pipeline, producing a consolidated Excel report and a detailed record of detected inconsistencies.
 
-| Step | What happens |
+## Key Features
+
+- **Automatic header detection:** Identifies table headers even when spreadsheets contain introductory rows.
+- **Flexible column mapping:** Matches column names across different languages and handles minor spelling mistakes.
+- **Data cleaning:** Standardizes dates, numeric values, text fields, and product codes.
+- **Data validation:** Detects missing values, invalid formats, non-positive values, unknown products, dates outside the reporting period, and duplicate records.
+- **Error traceability:** Records the source file, original Excel row, field, and reason for each detected issue.
+- **Automated reporting:** Generates a consolidated Excel workbook with summary, data, issues, and column-mapping sheets.
+- **CSV export:** Produces an additional CSV file containing detected issues.
+- **Logging:** Records processing events and errors for easier troubleshooting.
+
+## Processing Pipeline
+
+```text
+Excel Files
+     |
+     v
+Header Detection
+     |
+     v
+Column Mapping
+     |
+     v
+Data Cleaning
+     |
+     v
+Data Validation
+     |
+     v
+Report Generation
+     |
+     v
+Consolidated Excel + Issues CSV
+```
+
+## Validation Rules
+
+| Rule | Description |
 |---|---|
-| **Load** | Finds the header row even below title rows; matches headers by exact alias or fuzzy similarity (`Delivry date` → `delivery_date`); falls back to the file name when a file has no supplier column |
-| **Clean** | Reads `1.250,5`, `0,225`, `€ 3,5 kg`, `03/09/2026`, Excel dates; trims text, upper-cases product codes, unifies supplier spelling (`FERME LENOIR` = `Ferme Lenoir`) |
-| **Validate** | Six rules (table below). Each problem becomes one entry with file, **Excel row number**, field and reason |
-| **Report** | `Summary` (formulas), `Data` (valid rows, total = formula), `Issues`, `Mapping` (audit trail of every column match) + an `_issues.csv` |
-| **Log** | Everything is written to `logs/harmonize.log`; an unreadable file is logged and skipped, it does not stop the run |
+| `missing_value` | Detects missing required fields. |
+| `invalid_format` | Identifies invalid date and numeric formats. |
+| `non_positive_value` | Flags zero or negative quantities and prices. |
+| `unknown_product` | Detects product codes absent from the reference dataset. |
+| `date_out_of_period` | Identifies records outside the configured reporting period. |
+| `duplicate_row` | Detects duplicate records based on supplier, date, product, quantity, and price. |
 
-### Validation rules
+Records containing validation issues are excluded from the valid data sheet and documented separately in the issues report.
 
-| Rule | Triggers when |
-|---|---|
-| `missing_value` | a required field is empty (date, supplier, product code, quantity, price) |
-| `invalid_format` | a cell has content that is not a valid date or number (`abc`, `31/02/2026`, `n/a`) |
-| `non_positive_value` | quantity or unit price is zero or negative |
-| `unknown_product` | product code is not in `products.csv` |
-| `date_out_of_period` | date is outside the configured period (default: September 2026) |
-| `duplicate_row` | same supplier, date, product, quantity and price as an earlier row (the first one is kept) |
+## Technologies
 
-Rows with any issue are excluded from `Data` and listed in `Issues`, so totals never include
-suspicious rows silently.
+- **Python**
+- **Pandas** — Data manipulation and processing.
+- **OpenPyXL** — Excel file reading and report generation.
+- **Pytest** — Automated testing.
+- **GitHub Actions** — Continuous integration.
 
-## Quick start
+## Getting Started
+
+### 1. Clone the repository
 
 ```bash
-git clone https://github.com/GustavoApellaniz/harmonize-xl.git
-cd harmonize-xl
-python3 -m venv .venv && source .venv/bin/activate
+git clone https://github.com/GustavoApellaniz/ExcelFlow.git
+cd ExcelFlow
+```
+
+### 2. Create a virtual environment
+
+```bash
+python3 -m venv .venv
+```
+
+Activate it:
+
+```bash
+# Linux / macOS
+source .venv/bin/activate
+
+# Windows
+.venv\Scripts\activate
+```
+
+### 3. Install dependencies
+
+```bash
 pip install -r requirements.txt
-
-python -m harmonize_xl run          # uses the bundled sample files
 ```
 
-Output: `output/consolidated_report.xlsx` and `output/consolidated_report_issues.csv`.
-A ready-made result is in [`examples/`](examples/).
-
-Use it on your own files:
+### 4. Run ExcelFlow
 
 ```bash
-python -m harmonize_xl run --input my_files/ --output out/report.xlsx \
-    --reference my_products.csv --period-start 2026-10-01 --period-end 2026-10-31
+python -m harmonize_xl run
 ```
 
-Other commands:
+The default execution uses the bundled sample files.
+
+Generated files:
+
+```text
+output/
+├── consolidated_report.xlsx
+└── consolidated_report_issues.csv
+```
+
+### 5. Process custom spreadsheets
 
 ```bash
-python -m harmonize_xl generate-sample --rows-per-file 500   # new messy files + ground truth
-python -m harmonize_xl benchmark --sizes 130 2000            # speed and detection quality
+python -m harmonize_xl run \
+    --input my_files/ \
+    --output output/report.xlsx \
+    --reference my_products.csv \
+    --period-start 2026-10-01 \
+    --period-end 2026-10-31
 ```
 
-## The sample data
+## Sample Dataset
 
-`sample_data/raw/` holds five files with different problems on purpose:
+The project includes synthetic Excel files designed to simulate real-world data inconsistencies.
 
-| File | Mess |
+| File | Scenario |
 |---|---|
-| `cooperative_normandie.xlsx` | French headers, 3 title rows above the table |
-| `fazenda_sul.xlsx` | Portuguese headers, dates and numbers stored as text (`1.250,5`) |
-| `green_farms_uk.xlsx` | ISO text dates, extra `Notes` column, supplier names in upper case |
-| `agro_iberia.xlsx` | misspelled headers, different column order |
-| `bio_nord.xlsx` | no supplier column |
+| `cooperative_normandie.xlsx` | French headers and introductory rows. |
+| `fazenda_sul.xlsx` | Portuguese headers and localized numeric formats. |
+| `green_farms_uk.xlsx` | ISO dates, additional columns, and inconsistent capitalization. |
+| `agro_iberia.xlsx` | Misspelled headers and different column ordering. |
+| `bio_nord.xlsx` | Missing supplier column. |
 
-The data is **synthetic**. 45 errors were injected at known positions and listed in
-`sample_data/ground_truth.csv`, which allows precision and recall to be measured.
+The dataset includes injected errors and a ground-truth reference file, allowing the validation process to be evaluated objectively.
 
-## Results
+## Benchmark Results
 
-Measured with `python -m harmonize_xl benchmark` (details and reproduction in
-[`docs/BENCHMARK.md`](docs/BENCHMARK.md)):
+Measured performance using the project's benchmark command:
 
-| Rows read | Median time | Precision | Recall |
-|---|---|---|---|
+| Total Rows | Median Processing Time | Precision | Recall |
+|---:|---:|---:|---:|
 | 655 | 0.31 s | 100% | 100% |
 | 10,120 | 2.59 s | 100% | 100% |
 | 50,600 | 15.51 s | 100% | 100% |
 
-The comparison with the manual process is **not filled in yet**: the protocol is in
-[`docs/BENCHMARK.md`](docs/BENCHMARK.md). The 100% figures only mean the rules catch the error
-types they were designed for; they are not a claim about arbitrary real-world files.
+Results were obtained using synthetic datasets with predefined validation errors. They demonstrate detection performance for the implemented rules, not a guarantee of detecting every possible real-world data issue.
 
-## Design decisions
+For benchmark methodology and reproduction instructions, see [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
-- **Row numbers are Excel row numbers**, so every issue can be found by looking at that row in
-  the source file.
-- **Formulas, not pasted values.** The report's totals are `SUMIFS`/`SUM`/`COUNTIF` over the data
-  sheets, so they update if someone edits the data. Values appear when the file is opened in Excel.
-- **`keep_default_na=False` when reading.** By default pandas turns text like `n/a` or a product
-  code `NA` into empty values without telling you. Here the Cleaner decides what is missing and what
-  is invalid.
-- **Fuzzy header matching with a cutoff (0.8)** and an audit sheet, so a wrong match is visible.
-- **One failing file is logged and skipped**; the exit code is non-zero so scripts notice.
-- **Schema in one place** (`schema.py`): to adapt the tool to other columns, edit the field list
-  and aliases there and the rules in `validator.py`.
+## Running Tests
 
-## Project structure
-
-```
-harmonize_xl/
-├── cli.py          # generate-sample | run | benchmark
-├── pipeline.py     # load -> clean -> validate -> report
-├── loader.py       # header detection and column mapping
-├── schema.py       # canonical fields, aliases, fuzzy matching
-├── cleaner.py      # date/number parsing, text normalisation
-├── validator.py    # business rules
-├── report.py       # output workbook (openpyxl)
-├── sample_data.py  # messy file generator + ground truth
-└── benchmark.py    # timing, precision, recall
-tests/              # 26 automated tests
-sample_data/        # raw files, product reference, ground truth
-examples/           # report produced from the sample files
-docs/BENCHMARK.md   # measured results and manual-baseline protocol
-```
-
-## Tests
+Install development dependencies:
 
 ```bash
 pip install -r requirements-dev.txt
+```
+
+Run the test suite:
+
+```bash
 python -m pytest -q
 ```
 
-The end-to-end test generates new messy files with a different seed and asserts that every
-injected error is found and nothing else is flagged. GitHub Actions runs the suite on Python 3.10
-and 3.12.
+GitHub Actions is configured to run tests on Python 3.10 and 3.12.
 
-## Limitations
+## Current Limitations
 
-- Reads `.xlsx` only (not `.xls` or `.csv`) and expects one table per sheet.
-- Dates are read day-first (`03/09/2026` = 3 September). If only one separator appears in a number
-  it is treated as the decimal one, so `1.250` is read as `1.25`.
-- Supplier names are unified when they differ only by case or spacing, not by spelling.
-- Rules are written for the delivery schema; other domains need their own aliases and rules.
-- The `Summary` sheet shows values after Excel (or LibreOffice) recalculates the file; a program that
-  reads the file without calculating (such as pandas) sees empty formula cells. The example in
-  `examples/` was recalculated.
+- Supports `.xlsx` files.
+- Expects one data table per worksheet.
+- Date parsing follows a day-first convention.
+- Supplier normalization handles capitalization and spacing differences, but not arbitrary spelling variations.
+- Validation rules are currently designed around the project's delivery-data schema.
 
-## Ideas for next versions
+## Project Goals
 
-- Read `.csv` and `.xls`; configurable schema in a YAML file
-- Outlier rule (price far from the product's median)
-- Export clean data to SQLite for the SQL project of this portfolio
+ExcelFlow was developed to demonstrate practical skills in:
+
+- Data cleaning and preprocessing.
+- Spreadsheet automation.
+- Data validation and quality control.
+- Error handling and traceability.
+- Python application architecture.
+- Automated testing and benchmarking.
 
 ## Author
 
-**Gustavo Fraga Apellaniz**: [GitHub](https://github.com/GustavoApellaniz) ·
-[LinkedIn](https://linkedin.com/in/gustavoapellaniz)
+**Gustavo Fraga Apellaniz**
+
+- GitHub: [@GustavoApellaniz](https://github.com/GustavoApellaniz)
+- LinkedIn: [gustavoapellaniz](https://linkedin.com/in/gustavoapellaniz)
+
+---
 
 Released under the MIT License.
