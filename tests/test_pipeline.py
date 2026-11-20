@@ -1,13 +1,14 @@
 from datetime import date
 from pathlib import Path
 
+import pytest
 from openpyxl import Workbook, load_workbook
 
-from harmonize_xl.benchmark import evaluate, read_ground_truth
-from harmonize_xl.config import Config
-from harmonize_xl.loader import Loader
-from harmonize_xl.pipeline import Pipeline
-from harmonize_xl.sample_data import SampleDataGenerator
+from excelflow.benchmark import evaluate, read_ground_truth
+from excelflow.config import Config
+from excelflow.loader import Loader
+from excelflow.pipeline import Pipeline, load_reference
+from excelflow.sample_data import SampleDataGenerator
 
 
 def test_end_to_end_detects_every_injected_error_and_nothing_else(tmp_path):
@@ -61,3 +62,24 @@ def test_empty_folder_raises_clear_error(tmp_path):
         assert "No .xlsx files" in str(exc)
     else:
         raise AssertionError("expected FileNotFoundError")
+
+
+def test_folder_where_every_file_is_unreadable_raises_clear_error(tmp_path):
+    folder = tmp_path / "bad"
+    folder.mkdir()
+    (folder / "broken.xlsx").write_text("not excel")
+    with pytest.raises(ValueError, match="No readable table"):
+        Pipeline().run(folder, tmp_path / "r.xlsx")
+
+
+def test_reference_csv_saved_by_excel_with_bom_is_read(tmp_path):
+    ref = tmp_path / "products.csv"
+    ref.write_text("\ufeffProduct_Code,Product_Name\nwht01 ,Soft wheat\n", encoding="utf-8")
+    assert load_reference(ref) == {"WHT01": "Soft wheat"}
+
+
+def test_reference_csv_without_required_columns_raises(tmp_path):
+    ref = tmp_path / "products.csv"
+    ref.write_text("code,name\nWHT01,Soft wheat\n", encoding="utf-8")
+    with pytest.raises(ValueError, match="missing column"):
+        load_reference(ref)

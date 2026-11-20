@@ -1,4 +1,4 @@
-from harmonize_xl.schema import match_header, match_row, normalize_header
+from excelflow.schema import match_header, match_row, normalize_header
 
 
 def test_normalize_header_removes_accents_and_punctuation():

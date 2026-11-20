@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "excelflow"
+dynamic = ["version"]
+description = "Consolidate supplier Excel files with different layouts and date/number formats into one validated workbook with live formulas."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Gustavo Fraga Apellaniz" }]
+requires-python = ">=3.10"
+dependencies = ["pandas>=2.0", "openpyxl>=3.1"]
+
+[project.optional-dependencies]
+dev = ["pytest>=7.0"]
+
+[project.scripts]
+excelflow = "excelflow.cli:main"
+
+[project.urls]
+Repository = "https://github.com/GustavoApellaniz/ExcelFlow"
+
+[tool.setuptools]
+packages = ["excelflow"]
+
+[tool.setuptools.dynamic]
+version = { attr = "excelflow.__version__" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

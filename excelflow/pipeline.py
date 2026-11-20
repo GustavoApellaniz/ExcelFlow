@@ -8,12 +8,12 @@ from pathlib import Path
 
 import pandas as pd
 
-from harmonize_xl.cleaner import Cleaner
-from harmonize_xl.config import Config
-from harmonize_xl.loader import Loader
-from harmonize_xl.models import Issue, RunResult
-from harmonize_xl.report import ReportWriter
-from harmonize_xl.validator import Validator
+from excelflow.cleaner import Cleaner
+from excelflow.config import Config
+from excelflow.loader import Loader
+from excelflow.models import Issue, RunResult
+from excelflow.report import ReportWriter
+from excelflow.validator import Validator
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +23,15 @@ def load_reference(path: Path | None) -> dict[str, str] | None:
     if path is None or not Path(path).exists():
         logger.warning("No reference file: the 'unknown_product' rule is disabled")
         return None
-    frame = pd.read_csv(path, dtype=str)
-    return dict(zip(frame["product_code"].str.strip().str.upper(), frame["product_name"]))
+    # utf-8-sig: CSV files saved by Excel often start with a byte-order mark.
+    frame = pd.read_csv(path, dtype=str, keep_default_na=False, encoding="utf-8-sig")
+    frame.columns = [str(c).strip().lower() for c in frame.columns]
+    missing = {"product_code", "product_name"} - set(frame.columns)
+    if missing:
+        raise ValueError(f"Reference file {Path(path).name} is missing column(s): "
+                         f"{', '.join(sorted(missing))}")
+    codes = frame["product_code"].str.replace(" ", "").str.upper()
+    return {code: name for code, name in zip(codes, frame["product_name"]) if code}
 
 
 def issues_to_frame(issues: list[Issue]) -> pd.DataFrame:
@@ -34,16 +41,28 @@ def issues_to_frame(issues: list[Issue]) -> pd.DataFrame:
     )
 
 
+def issues_csv_path(report_path: Path) -> Path:
+    """report.xlsx -> report_issues.csv (next to the workbook)."""
+    return report_path.with_name(report_path.stem + "_issues.csv")
+
+
 class Pipeline:
     def __init__(self, config: Config | None = None) -> None:
         self.config = config or Config()
 
     def run(self, input_dir: Path, output_path: Path, reference_path: Path | None = None) -> RunResult:
+        if self.config.period_start > self.config.period_end:
+            raise ValueError(f"Period start {self.config.period_start} is after "
+                             f"period end {self.config.period_end}")
         started = time.perf_counter()
         reference = load_reference(reference_path)
 
         loader = Loader(self.config)
         tables = loader.load_folder(input_dir)
+        if not tables:
+            details = "; ".join(f"{name}: {err}" for name, err in loader.failed_files)
+            raise ValueError(f"No readable table found in {input_dir}"
+                             + (f" ({details})" if details else ""))
         raw = pd.concat([t.frame for t in tables], ignore_index=True)
         logger.info("Loaded %d rows from %d sheets", len(raw), len(tables))
 
@@ -59,8 +78,7 @@ class Pipeline:
         ReportWriter(self.config, reference).write(
             Path(output_path), clean, issues, mapping_rows,
             files_read=len({t.file for t in tables}), rows_read=len(raw))
-        issues_to_frame(issues).to_csv(Path(output_path).with_name(Path(output_path).stem + "_issues.csv"),
-                                       index=False)
+        issues_to_frame(issues).to_csv(issues_csv_path(Path(output_path)), index=False)
 
         elapsed = time.perf_counter() - started
         logger.info("Done: %d valid rows, %d issues in %d rows, %.2fs",

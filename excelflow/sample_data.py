@@ -14,7 +14,7 @@ from pathlib import Path
 
 from openpyxl import Workbook
 
-from harmonize_xl.models import (
+from excelflow.models import (
     DATE_OUT_OF_PERIOD, DUPLICATE_ROW, INVALID_FORMAT, MISSING_VALUE, NON_POSITIVE, UNKNOWN_PRODUCT,
 )
 

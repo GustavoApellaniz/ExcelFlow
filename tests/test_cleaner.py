@@ -2,8 +2,8 @@ from datetime import date, datetime
 
 import pandas as pd
 
-from harmonize_xl.cleaner import Cleaner, ParseError, is_blank, parse_date, parse_number
-from harmonize_xl.models import INVALID_FORMAT
+from excelflow.cleaner import Cleaner, ParseError, is_blank, parse_date, parse_number
+from excelflow.models import INVALID_FORMAT
 
 
 def _fails(func, value) -> bool:

@@ -9,8 +9,8 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 from openpyxl.utils import get_column_letter
 
-from harmonize_xl.config import Config
-from harmonize_xl.models import ALL_RULES, Issue
+from excelflow.config import Config
+from excelflow.models import ALL_RULES, Issue
 
 FONT = "Arial"
 HEADER_FILL = PatternFill("solid", fgColor="1F4E78")

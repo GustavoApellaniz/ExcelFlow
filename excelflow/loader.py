@@ -8,9 +8,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from harmonize_xl.cleaner import is_blank
-from harmonize_xl.config import Config
-from harmonize_xl.schema import FIELDS, HeaderMatch, match_row
+from excelflow.cleaner import is_blank
+from excelflow.config import Config
+from excelflow.schema import FIELDS, HeaderMatch, match_row
 
 logger = logging.getLogger(__name__)
 
@@ -50,6 +50,8 @@ class Loader:
         self.failed_files: list[tuple[str, str]] = []
 
     def load_folder(self, folder: Path) -> list[LoadedTable]:
+        if not Path(folder).is_dir():
+            raise FileNotFoundError(f"Input folder not found: {folder}")
         files = sorted(p for p in Path(folder).glob("*.xlsx") if not p.name.startswith("~$"))
         if not files:
             raise FileNotFoundError(f"No .xlsx files found in {folder}")

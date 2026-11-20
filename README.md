@@ -89,37 +89,93 @@ source .venv/bin/activate
 .venv\Scripts\activate
 ```
 
-### 3. Install dependencies
+### 3. Install
 
 ```bash
-pip install -r requirements.txt
+pip install -e .
 ```
 
-### 4. Run ExcelFlow
+This installs the dependencies (Pandas, OpenPyXL) and the `excelflow` command.
+`python -m excelflow` works too, and `pip install -r requirements.txt` is enough if you
+prefer to run it without installing the package.
+
+### 4. Run ExcelFlow on the sample files
 
 ```bash
-python -m harmonize_xl run
+excelflow run
 ```
 
-The default execution uses the bundled sample files.
-
-Generated files:
+The default run uses the bundled sample files in `sample_data/raw/` and the product list in
+`sample_data/reference/products.csv`. Generated files:
 
 ```text
 output/
-├── consolidated_report.xlsx
-└── consolidated_report_issues.csv
+├── consolidated_report.xlsx        # Summary, Data, Issues and Mapping sheets
+└── consolidated_report_issues.csv  # one line per detected issue
+logs/
+└── excelflow.log                   # processing log
 ```
 
-### 5. Process custom spreadsheets
+Pre-generated copies are in [`examples/`](examples/).
+
+### 5. Process your own spreadsheets
 
 ```bash
-python -m harmonize_xl run \
-    --input my_files/ \
-    --output output/report.xlsx \
-    --reference my_products.csv \
-    --period-start 2026-10-01 \
-    --period-end 2026-10-31
+excelflow run     --input my_files/     --output output/report.xlsx     --reference my_products.csv     --period-start 2026-10-01     --period-end 2026-10-31
+```
+
+The reference file is a CSV with the columns `product_code,product_name`. Without
+`--reference`, the `unknown_product` rule is skipped for custom folders (a warning is logged).
+
+## Command Reference
+
+| Command | What it does |
+|---|---|
+| `excelflow run` | Consolidates every `.xlsx` in `--input` into one validated workbook. |
+| `excelflow generate-sample` | Recreates the synthetic messy files and their ground truth (`--rows-per-file`, `--seed`, `--output`). |
+| `excelflow benchmark` | Measures speed, precision and recall on generated data (`--sizes`, `--repeats`). |
+| `excelflow --version` | Prints the installed version. |
+
+Options of `run`:
+
+| Option | Default | Meaning |
+|---|---|---|
+| `--input` | `sample_data/raw` | Folder with the `.xlsx` files. |
+| `--output` | `output/consolidated_report.xlsx` | Workbook to write; the issues CSV goes next to it. |
+| `--reference` | sample list (only for the sample input) | Product reference CSV. |
+| `--no-reference` | off | Skip the product reference check. |
+| `--period-start` / `--period-end` | `2026-09-01` / `2026-09-30` | Valid delivery period (inclusive, `YYYY-MM-DD`). |
+| `--log-file` (before the command) | `logs/excelflow.log` | Where the log is written. |
+
+Exit codes: `0` success, `1` finished but some files could not be read, `2` invalid input
+(missing folder or reference file, bad dates, no readable table).
+
+## Output Workbook
+
+| Sheet | Content |
+|---|---|
+| **Summary** | Totals by supplier, by product and issues by rule. Every figure is a live Excel formula (`SUMIFS`, `COUNTIF`) over the other sheets, so it updates if you edit the data. |
+| **Data** | Valid rows only, in one standard layout. `Total (EUR)` is a formula (`=Quantity*Price`). Each row keeps its source file and Excel row. |
+| **Issues** | One line per problem: file, row, field, rule, original value and message. |
+| **Mapping** | How each original header was mapped (exact or fuzzy match, with score), which columns were ignored and when the supplier came from the file name. |
+
+## Project Structure
+
+```text
+excelflow/
+├── cli.py          # command-line interface
+├── pipeline.py     # load -> clean -> validate -> report
+├── loader.py       # header detection and column mapping
+├── schema.py       # canonical fields and multilingual/fuzzy header aliases
+├── cleaner.py      # date, number and text normalisation
+├── validator.py    # business rules
+├── report.py       # Excel workbook with live formulas
+├── sample_data.py  # synthetic messy files + ground truth
+└── benchmark.py    # speed and precision/recall measurement
+tests/              # pytest suite (unit + end-to-end)
+sample_data/        # bundled example input
+examples/           # example output
+docs/BENCHMARK.md   # benchmark method and manual baseline protocol
 ```
 
 ## Sample Dataset
@@ -155,7 +211,7 @@ For benchmark methodology and reproduction instructions, see [`docs/BENCHMARK.md
 Install development dependencies:
 
 ```bash
-pip install -r requirements-dev.txt
+pip install -e ".[dev]"
 ```
 
 Run the test suite:
@@ -164,7 +220,7 @@ Run the test suite:
 python -m pytest -q
 ```
 
-GitHub Actions is configured to run tests on Python 3.10 and 3.12.
+GitHub Actions runs the tests and a CLI smoke test on Python 3.10, 3.12 and 3.13.
 
 ## Current Limitations
 

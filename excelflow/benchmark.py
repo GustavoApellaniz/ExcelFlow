@@ -8,10 +8,10 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 
-from harmonize_xl.config import Config
-from harmonize_xl.models import Issue
-from harmonize_xl.pipeline import Pipeline
-from harmonize_xl.sample_data import SampleDataGenerator
+from excelflow.config import Config
+from excelflow.models import Issue
+from excelflow.pipeline import Pipeline
+from excelflow.sample_data import SampleDataGenerator
 
 
 @dataclass

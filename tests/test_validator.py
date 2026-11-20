@@ -2,11 +2,11 @@ from datetime import date
 
 import pandas as pd
 
-from harmonize_xl.config import Config
-from harmonize_xl.models import (
+from excelflow.config import Config
+from excelflow.models import (
     DATE_OUT_OF_PERIOD, DUPLICATE_ROW, MISSING_VALUE, NON_POSITIVE, UNKNOWN_PRODUCT, Issue,
 )
-from harmonize_xl.validator import Validator
+from excelflow.validator import Validator
 
 REFERENCE = {"WHT01": "Soft wheat"}
 

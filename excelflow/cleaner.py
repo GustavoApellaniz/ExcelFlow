@@ -11,8 +11,8 @@ from datetime import date, datetime
 import pandas as pd
 from openpyxl.utils.datetime import from_excel
 
-from harmonize_xl.models import INVALID_FORMAT, Issue
-from harmonize_xl.schema import FIELDS
+from excelflow.models import INVALID_FORMAT, Issue
+from excelflow.schema import FIELDS
 
 logger = logging.getLogger(__name__)
 

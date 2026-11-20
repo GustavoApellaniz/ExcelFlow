@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from harmonize_xl.cleaner import is_blank
-from harmonize_xl.config import Config
-from harmonize_xl.models import (
-    DATE_OUT_OF_PERIOD, DUPLICATE_ROW, MISSING_VALUE, NON_POSITIVE, UNKNOWN_PRODUCT, Issue,
-)
 import pandas as pd
 
-from harmonize_xl.schema import REQUIRED_FIELDS
+from excelflow.cleaner import is_blank
+from excelflow.config import Config
+from excelflow.models import (
+    DATE_OUT_OF_PERIOD, DUPLICATE_ROW, MISSING_VALUE, NON_POSITIVE, UNKNOWN_PRODUCT, Issue,
+)
+from excelflow.schema import REQUIRED_FIELDS
 
 
 class Validator:
